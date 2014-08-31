@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"time"
 )
+
+var msgId int
 
 func main() {
 	var displays [4]chan string
@@ -21,15 +24,28 @@ func main() {
 		go sendToDisplay(i+1, displays[i], displayResponses[i])
 	}
 
-	msgId := 0
 	for {
-		for _, display := range displays {
-			display <- fmt.Sprintf("Show text number %d", msgId)
-			display <- fmt.Sprintf("Other cmd %d", msgId)
-		}
-		msgId++
-		time.Sleep(1 * time.Second)
+		sendCommandToRandomDisplay(displays)
+		//sendCommandToAllDisplays(displays)
+		//time.Sleep(1 * time.Second)
 	}
+}
+
+func sendCommandToRandomDisplay(displays [4]chan string) {
+	displayId := rand.Intn(4)
+	display := displays[displayId]
+
+	display <- fmt.Sprintf("Msg %d to random display", msgId)
+
+	msgId++
+}
+
+func sendCommandToAllDisplays(displays [4]chan string) {
+	for _, display := range displays {
+		display <- fmt.Sprintf("Show text number %d", msgId)
+		display <- fmt.Sprintf("Other cmd %d", msgId)
+	}
+	msgId++
 }
 
 func listenForResponse(displayResponses [4]chan string) {
